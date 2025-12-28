@@ -1,9 +1,10 @@
 const WebSocket = require('ws');
 
-// Set up the WebSocket server on port 8080
-const wss = new WebSocket.Server({ port: 8080 });
+// Set up the WebSocket server on port 8080 or Cloud PORT
+const PORT = process.env.PORT || 8080;
+const wss = new WebSocket.Server({ port: PORT });
 
-console.log('Braille WebSocket Server is running on ws://localhost:8080');
+console.log(`Braille WebSocket Server is running on port ${PORT}`);
 
 // Broadcast to all clients except the sender
 wss.on('connection', (ws) => {
