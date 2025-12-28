@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Envision Meet
 
-## Getting Started
+**Envision Meet** is an accessible, real-time video conferencing application designed to bridge the gap for users with visual impairments. It combines high-quality video calls with ultra-low latency accessibility tools like **Live Braille Streaming** and **Instant Captions**.
 
-First, run the development server:
+![Project Login Screen](/images/meet_image.jpg)
 
+## 🌟 Key Features
+
+### 🎥 HD Video Conferencing
+-   Powered by **ZegoCloud UIKit**.
+-   Supports multi-user group calls, screen sharing, and device management.
+
+### ⠞⠑⠎⠞ Real-Time Braille Streaming
+-   **Ultra-Low Latency**: Keystrokes are streamed character-by-character in < 50ms.
+-   **Hybrid Transport**: Uses a custom **Local WebSocket Server** (`ws://localhost:8080`) to bypass standard chat delays.
+-   **Instant Feedback**: Two-way synchronization—sender sees what they type, receiver sees it appear instantly.
+
+### 💬 Live Streaming Captions
+-   **Interim Result Streaming**: Captions appear letter-by-letter as you speak, not just when you finish a sentence.
+-   **Smart UI**: Updates the current chat bubble dynamically instead of flooding the chat history.
+
+### 🔐 Secure Authentication
+-   **NextAuth.js**: Secure Credential-based login (Email/Password).
+-   **MongoDB**: Persistent user storage and session management.
+
+---
+
+## 🛠️ Technology Stack
+
+-   **Frontend**: [Next.js 14 (App Router)](https://nextjs.org/)
+-   **Video Engine**: [ZegoCloud](https://www.zegocloud.com/)
+-   **Real-Time Data**: Custom Node.js WebSocket Server (`ws`)
+-   **Database**: MongoDB (Mongoose)
+-   **Styling**: Tailwind CSS, Radix UI, Lucide Icons
+-   **State Management**: React Hooks, React Toastify
+
+---
+
+## 🚀 Getting Started
+
+This project requires **two terminal processes** running simultaneously (Frontend + WebSocket Server).
+
+### 1. Prerequisites
+-   Node.js 18+ installed.
+-   MongoDB instance (local or Atlas) running.
+-   Env variables configured (see `.env.example`).
+
+### 2. Installation
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Rohitprakasam/envision_meet.git
+cd envision_meet
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Setup Environment Variables
+Create a `.env.local` file:
+```env
+NEXT_PUBLIC_ZEGOAPP_ID=your_app_id
+NEXT_PUBLIC_ZEGO_SERVER_SECRET=your_server_secret
+MONGODB_URI=your_mongodb_connection_string
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 4. Run the Project
+**Terminal 1 (Frontend):**
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Terminal 2 (WebSocket Server - REQUIRED for Braille/Captions):**
+```bash
+node websocket-server.js
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📂 Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+-   `src/app/video-meeting/[roomId]/page.jsx`: Core meeting logic, WebSocket client integration, and ZegoUIKit.
+-   `websocket-server.js`: The standalone server handling Braille and Caption streams.
+-   `src/api/auth/`: NextAuth authentication routes.
+-   `src/models/`: Mongoose schemas.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🤝 Contributing
+Contributions are welcome! Please open an issue or submit a pull request for any improvements.
