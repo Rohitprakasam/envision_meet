@@ -1,63 +1,91 @@
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import NextAuth from "next-auth"
-import GithubProvider from "next-auth/providers/github"
-import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions = {
   // Configure one or more authentication providers
   providers: [
-    GithubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
+
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {},
+
+      async authorize(credentials) {
+        const { email, password } = credentials;
+        try {
+          await dbConnect();
+          const user = await User.findOne({ email });
+
+          if (!user) {
+            return null;
+          }
+
+          if (!user.password) {
+            // User might have signed up with provider
+            return null;
+          }
+
+          const passwordsMatch = await bcrypt.compare(password, user.password);
+
+          if (!passwordsMatch) {
+            return null;
+          }
+
+          return user;
+
+        } catch (error) {
+          console.log("Error: ", error);
+        }
+      },
     }),
-    GoogleProvider({
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET
-      })
   ],
-  callbacks:{
-    async jwt({token,user,account}){
+  callbacks: {
+    async jwt({ token, user, account }) {
 
-        if(user){
-            token.id = user.id;
-        }
-        if(account){
-            token.accessToken= account.access_token;
-        }
+      if (user) {
+        token.id = user.id || user._id; // Handle both mongoose _id and NextAuth id
+      }
+      if (account) {
+        token.accessToken = account.access_token;
+      }
 
-        return token;
+      return token;
     },
     async session({ session, token }) {
-         session.user.id= token.id;
-        return session
-      },
+      session.user.id = token.id;
+      return session
+    },
 
-      async signIn({user,profile}) {
-        await dbConnect();
-        let dbUser = await User.findOne({email: user.email})
-
-        //if user not found create a new user
-        if(!dbUser){
-            dbUser = await User.create({
-                name:profile.name,
-                email:profile.email,
-                profilePicture:profile.picture,
-                isVerified:profile.email_verified ? true :false
-            })
-        }
-         user.id = dbUser._id.toString();
-         return true;
+    async signIn({ user, account }) {
+      if (account.provider === "credentials") {
+        return true;
       }
+      await dbConnect();
+      let dbUser = await User.findOne({ email: user.email })
+
+      //if user not found create a new user
+      if (!dbUser) {
+        dbUser = await User.create({
+          name: user.name,
+          email: user.email,
+          profilePicture: user.image,
+          isVerified: true
+        })
+      }
+      user.id = dbUser._id.toString();
+      return true;
+    }
   },
-  session:{
+  session: {
     strategy: 'jwt',
-    maxAge : 90 * 24 * 60 * 60
+    maxAge: 90 * 24 * 60 * 60
   },
-  pages:{
+  pages: {
     signIn: '/user-auth',
   }
 }
 
 const handle = NextAuth(authOptions)
-export {handle as POST , handle as GET};
+export { handle as POST, handle as GET };
