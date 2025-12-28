@@ -1,26 +1,29 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI ;
-
-if(!MONGODB_URI){
-   throw new Error('please define MONGODB_URI in your environment variable for databse connection')
-}
+// Validated inside dbConnect to prevent build-time crashes if ENV is missing
+// const MONGODB_URI = process.env.MONGODB_URI;
+// if(!MONGODB_URI){ ... }
 
 let cached = global.mongoose;
 
-if(!cached){
-    cached = global.mongoose = {conn: null, promise:null};
+if (!cached) {
+    cached = global.mongoose = { conn: null, promise: null };
 }
 
-async function dbConnect () {
-    if(cached.conn){
+async function dbConnect() {
+    const MONGODB_URI = process.env.MONGODB_URI;
+    if (!MONGODB_URI) {
+        throw new Error('please define MONGODB_URI in your environment variable for databse connection');
+    }
+
+    if (cached.conn) {
         return cached.conn;
     }
-    if(!cached.promise){
+    if (!cached.promise) {
 
         const object = {
-            bufferCommands:false,
-            serverSelectionTimeoutMS:5000
+            bufferCommands: false,
+            serverSelectionTimeoutMS: 5000
         }
 
         //create a new connection and return promise and store in the cahce object
@@ -31,7 +34,7 @@ async function dbConnect () {
     try {
         cached.conn = await cached.promise;
     } catch (error) {
-        cached.promise=null
+        cached.promise = null
         throw error;
     }
 
